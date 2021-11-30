@@ -9,7 +9,9 @@ Experiment (GRACE) spherical harmonics solutions, O. Goux, J. Pfeffer, A. Blazqu
 An exemple of application of the function diffusion_filter is given in a Jupyter
 notebook in the folder "demo". It uses data stored in a test_data.nc. Note that 
 while the diffusion filter only requires numpy and scipy, the notebook uses the 
-netCDF4 library for the input data as well as Basemap and matplotlib for the display.
+netCDF4 library for the input data as well as Basemap and matplotlib for the display. Note that the Git website does not render Jupyter Notebooks properly, please download the notebook to read it properly, or read the code 
+from the demo_diffusion.py file instead.
+
 If your installation does not support Basemap, you can either use your own display function or install a 
 virtual environment containing Basemap, e.g.:
 
