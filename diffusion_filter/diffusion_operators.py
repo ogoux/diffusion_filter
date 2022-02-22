@@ -15,7 +15,7 @@ but their use goes beyond the scope of the article.
 import numpy as np
 import diffusion_filter.diffusion_auxiliary as aux
 import scipy.sparse.linalg as spl
-
+import scipy as sp
 
 
 
@@ -138,18 +138,21 @@ def diffusion_filter(input_grid, D, M, water_ratio = None, boundary_mask = False
     WL_inv = aux.FD_matrix(res, kappa, dt = 1, water_ratio = water_ratio,
                        surface_model = surface_model)
     
+    # Pre-compute the LU factorization in a sparse format and return a solver
+    WL_operator  = spl.factorized(WL_inv)
+    
     # Fetch the diagonal elements of W
     _, _, _, _, _, _, w = aux.grid_geometry(res, surface_model = surface_model,
                                         water_ratio = water_ratio)  
-
+    wf = w.flatten()
     for i in range(M):
         # Apply W
         if len(np.shape(field)) == 1:
-            field *= w.flatten()
+            field *= wf
         if len(np.shape(field)) == 2:
-            field *= w.flatten()[:,np.newaxis]
+            field *= wf[:,np.newaxis]
         # Apply (W * L^{-1})^{-1}
-        field = spl.spsolve(WL_inv, field)
+        field = WL_operator(field)
     # =========================================================================
     
     
@@ -295,6 +298,9 @@ def diffusion_sqrt(input_grid, D, M, water_ratio = None, boundary_mask = False,
     WL_inv = aux.FD_matrix(res, kappa, dt = 1, water_ratio = water_ratio,
                        surface_model = surface_model)
     
+    # Pre-compute the LU factorization in a sparse format and return a solver
+    WL_operator  = spl.factorized(WL_inv)
+    
     # Fetch the diagonal elements of W
     _, _, _, _, _, _, w = aux.grid_geometry(res, surface_model = surface_model,
                                         water_ratio = water_ratio)  
@@ -306,7 +312,7 @@ def diffusion_sqrt(input_grid, D, M, water_ratio = None, boundary_mask = False,
         if len(np.shape(field)) == 2:
             field *= w.flatten()[:,np.newaxis]
         # Apply (W * L^{-1})^{-1}
-        field = spl.spsolve(WL_inv, field)
+        field = WL_operator(field)
     # =========================================================================
     
     
