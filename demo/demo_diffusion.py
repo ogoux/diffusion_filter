@@ -19,6 +19,7 @@ import mpl_toolkits.basemap as mpb
 
 
 # Function to display a single monthly anomaly using matplotlib and basemap
+# =============================================================================
 def plot_anomaly(grid, title):
     plt.figure(figsize=(7,5), dpi= 100, facecolor='w', edgecolor='k')
     #Create a Basemap object
@@ -39,6 +40,8 @@ def plot_anomaly(grid, title):
                                                 vmin = -vabs, vmax = vabs))
     plt.colorbar(cs, orientation = 'horizontal')
     plt.suptitle(title)
+# =============================================================================
+
 
 
 # Import the EWH anomaly and water ratio from the netCDF file
@@ -55,16 +58,22 @@ mask = water_ratio<=0.9
 #mask = water_ratio<=0.02
 plt.pcolor(np.roll(mask, mask.shape[1]//2, axis =1))
 
+
 # Length scales of the filter. Other formats for D are specified in the description
 # of the function diffusion__filter
-D = (360E3, # Along North-South direction on the ocean
-     540E3, # Along East-West direction on the ocean
-     150E3, # Along North-South direction on land
-     330E3) # Along North-South direction on land
-M = 4
+D = (170E3, # Along North-South direction on the ocean
+     220E3, # Along East-West direction on the ocean
+     50E3, # Along North-South direction on land
+     150E3) # Along North-South direction on land
+M = 8
+
+
 
 # Filter the solution
-filtered_ewh = dif.diffusion_filter(ewh, D, M, water_ratio = water_ratio, boundary_mask = mask)
+filtered_ewh = dif.diffusion_filter(ewh, D, M,
+                                    water_ratio = water_ratio, boundary_mask = mask,
+                                    boundary_inflation_factor =1 , boundary_inflation_range=1,
+                                    latitude_variability = (1,1))
 
 # If the mask is provided as "out_of_domain_mask" instead of "boundary_mask",
 # all the points flagged in it are excluded. 

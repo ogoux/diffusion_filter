@@ -155,7 +155,8 @@ def distance_to_mask(mask):
 
 
 def format_D(D, res, boundary_mask = False, out_of_domain_mask = False, surface_model = 'ellipsoid',
-             boundary_inflation_factor = 1, boundary_inflation_range = 3 ):
+             boundary_inflation_factor = 1, boundary_inflation_range = 3,
+             latitude_variability = (0,0)):
     """
     If D is not inside a tuple of arrays representing the meridional and zonal 
     diffusivity fields, it is expanded to fit this format. boundary mask is used 
@@ -182,6 +183,9 @@ def format_D(D, res, boundary_mask = False, out_of_domain_mask = False, surface_
                 direction out of boundary_mask, the second to the parallel direction out of
                 boundary_mask, the third to the meridional direction in boundary_mask, the second
                 to the parallel direction in boundary_mask.
+    res : tuple
+        Resolution of the grid in latitude and longitude in degree. The expected
+        format is (latitude resolution, longitude resolution).
     boundary_mask : 2D array, optional
         Array of booleans of dimension (nlat,nlon) separating the grid in two domains.
         Neumann conditions are used to restrict fluxes between the two domains 
@@ -204,6 +208,12 @@ def format_D(D, res, boundary_mask = False, out_of_domain_mask = False, surface_
          An empirical correction can be applied by increasing the Daley length scale
          near the boundaries (see beta in Equation 14 of Goux et al.). This parameter
          characterizes the width of this correction. The default is 3.
+    latitude_variability: tuple, optional
+        This option increases the Daley length scales at the Equator while keeping 
+        it unchanged at the pole (the correction acts as a cosine of laitutde). If
+        set to one, the length scales are doubled at the Equator; if set to zero nothing
+        is done. A tuple of two scalars is expected, the first affect the meridional
+        lengtth scales, the second the zonal length scales. The default is (0, 0)
         -----------------------------------------------------------------------
     """
     
@@ -338,7 +348,17 @@ def format_D(D, res, boundary_mask = False, out_of_domain_mask = False, surface_
                             np.exp(-0.5*(dist_j[pos_inds_j]/(boundary_inflation_range *  D_j[pos_inds_j]))**2)       
         
     # =========================================================================
-        
+     
+    
+    """
+    A dependency to the latitude can be integrated as a first order representation
+    of a variable SNR. 
+    """
+    # =========================================================================
+    variable_Di = np.cos(lat(res[0], centered=False)*np.pi/180)[:, np.newaxis] 
+    variable_Dj = np.cos(lat(res[0], centered=True)*np.pi/180)[:, np.newaxis]
+    D_i *= ( 1+  latitude_variability[0] * variable_Di)
+    D_j *= ( 1+  latitude_variability[1] * variable_Dj)
         
     """
     When the diffusivity is set to 0 on an edge, there will be no flux through 
